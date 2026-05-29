@@ -1,0 +1,28 @@
+[project]
+name = "leadbot-worker"
+version = "0.1.0"
+description = "Python worker for LeadBot V1 lead discovery."
+requires-python = ">=3.11"
+dependencies = [
+  "beautifulsoup4>=4.12",
+  "httpx>=0.27",
+  "psycopg[binary]>=3.2",
+  "pydantic>=2.7",
+  "rapidfuzz>=3.9",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+]
+
+[project.scripts]
+leadbot-worker = "leadbot_worker.main:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
