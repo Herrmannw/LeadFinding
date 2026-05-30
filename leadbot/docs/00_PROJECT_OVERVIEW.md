@@ -16,7 +16,7 @@ A small marketing/web-design agency operator who wants to find local businesses 
 2. User enters:
    - industry/search term, e.g. `HVAC`
    - location, e.g. `TX`, `Houston TX`, `Dallas TX`
-   - target record count, e.g. `500`
+   - record goal / best-effort target, e.g. `500`
    - selected sources: Yelp, Thumbtack
 3. App creates a search job.
 4. Backend collects search result URLs using Google/SERP search operators.

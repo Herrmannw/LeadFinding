@@ -59,7 +59,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 </label>
 
                 <label className="field">
-                  <span className="label">Target Records</span>
+                  <span className="label">Record Goal</span>
                   <input
                     className="input"
                     name="target_record_count"
@@ -150,7 +150,7 @@ function errorMessage(error: string) {
     return "Industry and location are required.";
   }
   if (error === "invalid-target") {
-    return "Target records must be between 1 and 5000.";
+    return "Record goal must be between 1 and 5000.";
   }
   return "Could not create the search job.";
 }

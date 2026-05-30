@@ -1,6 +1,6 @@
-from leadbot_worker.pipeline.collect_urls import MockSerpProvider
-from leadbot_worker.pipeline.run_job import run_parse_pages_job, run_url_collection_job
-from leadbot_worker.models.raw_record import ParsedSourceRecord
+from leadbot_worker.models.raw_record import ParsedSourceRecord, SourceUrl
+from leadbot_worker.pipeline.collect_urls import MockSerpProvider, SourceUrlCollection
+from leadbot_worker.pipeline.run_job import run_parse_pages_job, run_search_job, run_url_collection_job
 
 
 def test_run_url_collection_job_logs_and_stores_discovered_urls(monkeypatch) -> None:
@@ -102,3 +102,95 @@ def test_run_parse_pages_job_fetches_and_stores_parsed_records(monkeypatch) -> N
         ("insert", "job-1", "yelp", "parsed"),
     ]
     assert events[-1] == ("completed", "job-1", 2, 0, 0)
+
+
+def test_run_search_job_dedupes_and_preserves_source_evidence(monkeypatch) -> None:
+    events: list[tuple] = []
+    source_urls = [
+        SourceUrl(
+            source_name="yelp",
+            url="https://www.yelp.com/biz/abc-heating",
+            query_used="site:yelp.com/biz HVAC Houston TX",
+        ),
+        SourceUrl(
+            source_name="thumbtack",
+            url="https://www.thumbtack.com/tx/houston/hvac/abc-heating/service",
+            query_used="site:thumbtack.com HVAC Houston TX",
+        ),
+    ]
+
+    def collect_job_source_urls(job, provider):
+        return SourceUrlCollection(urls=source_urls, request_logs=[])
+
+    def fetch_and_parse(source_url):
+        return ParsedSourceRecord(
+            source_name=source_url.source_name,
+            source_url=str(source_url.url),
+            query_used=source_url.query_used,
+            business_name="ABC Heating and Air",
+            phone="+1 (713) 555-1234",
+            city="Houston",
+            state="TX",
+            category="HVAC",
+            review_count=42 if source_url.source_name == "yelp" else None,
+            profile_text="Residential heating and AC repairs.",
+        )
+
+    def insert_raw_record(connection, search_job_id, record):
+        return f"raw-{record.source_name}"
+
+    def insert_lead_with_score(connection, search_job_id, lead, raw_record_ids, score):
+        events.append(
+            (
+                "lead",
+                search_job_id,
+                lead.phone,
+                lead.source_count,
+                [record.source_name for record in lead.source_records],
+                raw_record_ids,
+                score.recommended_bucket,
+            )
+        )
+        return "lead-1"
+
+    def update_job_progress(connection, job_id, **kwargs):
+        events.append(("progress", job_id, kwargs))
+
+    def mark_job_completed(connection, job_id, records_found, leads_created, qualified_leads):
+        events.append(("completed", job_id, records_found, leads_created, qualified_leads))
+
+    monkeypatch.setattr(
+        "leadbot_worker.pipeline.run_job.collect_job_source_urls",
+        collect_job_source_urls,
+    )
+    monkeypatch.setattr("leadbot_worker.pipeline.run_job.fetch_and_parse", fetch_and_parse)
+    monkeypatch.setattr("leadbot_worker.pipeline.run_job.queries.insert_raw_record", insert_raw_record)
+    monkeypatch.setattr(
+        "leadbot_worker.pipeline.run_job.queries.insert_lead_with_score",
+        insert_lead_with_score,
+    )
+    monkeypatch.setattr("leadbot_worker.pipeline.run_job.queries.update_job_progress", update_job_progress)
+    monkeypatch.setattr("leadbot_worker.pipeline.run_job.queries.mark_job_completed", mark_job_completed)
+
+    run_search_job(
+        object(),
+        {
+            "id": "job-1",
+            "industry": "HVAC",
+            "location": "Houston TX",
+            "selected_sources": ["yelp", "thumbtack"],
+            "target_record_count": 10,
+        },
+        MockSerpProvider(),
+    )
+
+    assert events[2] == (
+        "lead",
+        "job-1",
+        "7135551234",
+        2,
+        ["yelp", "thumbtack"],
+        ["raw-yelp", "raw-thumbtack"],
+        "high_priority",
+    )
+    assert events[-1] == ("completed", "job-1", 2, 1, 1)

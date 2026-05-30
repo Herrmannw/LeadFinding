@@ -57,7 +57,7 @@ Create a simple UI for creating search jobs.
 Fields:
 - industry/search term
 - location
-- target record count
+- record goal / best-effort target
 - source checkboxes:
   - Yelp
   - Thumbtack
@@ -158,6 +158,11 @@ Current status:
 - Parser tests cover fixture-based Yelp and Thumbtack extraction, partial records, and unknown-parser failure.
 - The parser code does not require real SERP results; live pages should be used later for smoke testing and fixture expansion.
 
+Known parser fragility to address after fixture expansion:
+- JSON-LD extraction currently uses the first object with a matching field, which can mix business data with `WebPage`, breadcrumb, search-result, or other page metadata. Do not harden this blindly; first save representative Yelp/Thumbtack test pages and add fixtures where page-level JSON-LD appears before business JSON-LD.
+- Website detection currently treats the first non-blocked external link as an official website candidate, which can misclassify ads, maps, booking links, tracking redirects, partner links, or directory/social links as a business website. Add fixtures with true website buttons and false-positive external links before changing the detection logic.
+- Prefer false negatives over false positives for website detection in V1, because incorrectly marking `website_found` can suppress good no-website leads.
+
 ---
 
 # Milestone 6: Normalization and Dedupe
@@ -181,6 +186,13 @@ Acceptance criteria:
 - Duplicate Yelp/Thumbtack records can merge into one lead.
 - Source evidence is preserved.
 - Uncertain duplicates can be marked `needs_review`.
+
+Current status:
+- Implemented.
+- Normalization covers names, phones, domains, and addresses.
+- Dedupe merges exact phone, exact domain, exact normalized address, and high-confidence fuzzy name matches with the same city.
+- Lower-confidence same-city/same-category fuzzy matches are kept separate and marked `needs_review` so a human can inspect them.
+- Pipeline mode stores canonical leads with `lead_sources` evidence links and preserves `needs_review` status during scoring.
 
 ---
 
@@ -268,13 +280,17 @@ Acceptance criteria:
 Goal:
 Make V1 usable.
 
+Known reliability bug:
+- If a worker crashes after claiming a queued job, that job can remain `running` forever because V1 has no job lease, stale-running timeout, retry counter, or requeue path yet.
+
 Tasks:
 1. Add basic retry handling.
-2. Add rate limiting.
-3. Add API quota guard.
-4. Add duplicate URL checks.
-5. Add parser error logging.
-6. Add simple tests for normalization and scoring.
+2. Add stale `running` job recovery using a lease/heartbeat, timeout, or retry/requeue policy.
+3. Add rate limiting.
+4. Add API quota guard.
+5. Add duplicate URL checks.
+6. Add parser error logging.
+7. Add simple tests for normalization and scoring.
 
 Acceptance criteria:
 - Worker does not crash on bad pages.

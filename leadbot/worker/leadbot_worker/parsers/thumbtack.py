@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from leadbot_worker.models.raw_record import ParsedSourceRecord
+from leadbot_worker.pipeline.normalize import normalize_phone
 from leadbot_worker.parsers.common import (
     address_fields,
     city_state_from_text,
@@ -43,6 +44,7 @@ def parse_thumbtack_page(
             first_text(soup, ['a[href^="tel:"]']),
             find_phone(page_text),
         )
+        phone = normalize_phone(phone)
         website_url = first_official_website_url(
             soup,
             base_url=source_url,

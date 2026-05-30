@@ -39,7 +39,7 @@ export default async function JobPage({ params }: JobPageProps) {
               <div className="panel-title">
                 {job.industry} · {job.location}
               </div>
-              <div className="subtle">Target {job.target_record_count}</div>
+              <div className="subtle">Goal {job.target_record_count}</div>
             </div>
             <span className={`status status-${job.status}`}>{job.status}</span>
           </div>

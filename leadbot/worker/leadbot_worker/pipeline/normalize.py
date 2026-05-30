@@ -23,7 +23,7 @@ def normalize_phone(phone: str | None) -> str | None:
         return None
     digits = re.sub(r"\D", "", phone)
     if len(digits) == 11 and digits.startswith("1"):
-        return digits
+        return digits[1:]
     if len(digits) == 10:
         return digits
     return digits or None

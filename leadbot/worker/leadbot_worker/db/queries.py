@@ -312,7 +312,7 @@ def insert_lead_with_score(
                     score.alive_score,
                     score.no_website_score,
                     score.opportunity_score,
-                    lead_status_for(score),
+                    lead_status_for(score, lead.status),
                     lead.dedupe_key,
                     lead.dedupe_confidence,
                 ),
@@ -367,7 +367,9 @@ def insert_lead_with_score(
             return lead_id
 
 
-def lead_status_for(score: LeadScore) -> str:
+def lead_status_for(score: LeadScore, current_status: str = "new") -> str:
+    if current_status != "new":
+        return current_status
     if score.recommended_bucket == "high_priority":
         return "qualified"
     if score.recommended_bucket == "reject":

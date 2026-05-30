@@ -21,7 +21,7 @@ def test_parse_yelp_page_extracts_business_fields() -> None:
     assert record.source_url == "https://www.yelp.com/biz/abc-heating-and-air-houston"
     assert record.query_used == "site:yelp.com/biz HVAC Houston TX"
     assert record.business_name == "ABC Heating & Air LLC"
-    assert record.phone == "(713) 555-1234"
+    assert record.phone == "7135551234"
     assert record.website_url == "https://abcheating.example"
     assert record.address == "100 Main St, Houston, TX 77002"
     assert record.city == "Houston"
@@ -47,7 +47,7 @@ def test_parse_thumbtack_page_extracts_business_fields() -> None:
 
     assert record.source_name == "thumbtack"
     assert record.business_name == "Lone Star HVAC Services"
-    assert record.phone == "+1 (512) 555-0198"
+    assert record.phone == "5125550198"
     assert record.website_url is None
     assert record.address == "220 Congress Ave, Austin, TX 78701"
     assert record.city == "Austin"

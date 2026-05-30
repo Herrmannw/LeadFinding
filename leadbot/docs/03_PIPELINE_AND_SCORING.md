@@ -30,6 +30,8 @@ Input:
 
 Create `search_jobs` row with status `queued`.
 
+`target_record_count` is a best-effort record goal in V1. It is used as the worker's stop condition, but the system may return fewer records when SERP results run out, duplicates are filtered, or provider limits are reached.
+
 ## Step 2: Generate Source Queries
 
 For Yelp:
@@ -125,8 +127,8 @@ Normalize business names:
 
 Normalize phones:
 - strip punctuation
-- keep country code if present
-- store as digits
+- strip a leading US country code (`1`) when present
+- store as 10-digit US numbers when possible
 
 Normalize domains:
 - lowercase

@@ -52,3 +52,5 @@ leadbot-worker --once --mode pipeline
 ```
 
 Pipeline mode uses source config, URL collection, parser contracts, normalization, dedupe, website status classification, and scoring. Treat that path as Milestone 6+ work.
+
+Known Milestone 10 reliability bug: if the worker process exits after claiming a job and before marking it `completed` or `failed`, the job can remain `running` until stale-job recovery is implemented.

@@ -9,12 +9,14 @@ Current implementation status:
 - Milestone 3 Python worker skeleton for queue polling and simulated job lifecycle.
 - Milestone 4 worker mode for collecting, filtering, deduping, logging, and storing source URLs.
 - Milestone 5 parser mode for fetching source pages and storing parsed raw records.
-- Later normalization/dedupe/scoring code exists as scaffold/in-progress, but Milestone 6+ should not be treated as complete yet.
+- Milestone 6 normalization/dedupe hardening for canonical leads and preserved source evidence.
+- Later website-presence and scoring behavior exists as scaffold/in-progress, but Milestone 7+ should not be treated as complete yet.
 - Unit tests exist for worker utilities, but later pipeline behavior still needs milestone-by-milestone hardening.
+- Known Milestone 10 reliability bug: a worker crash after claiming a job can leave that job stuck in `running` until stale-job recovery is added.
 
 Next milestone:
 
-- Milestone 6: normalization and dedupe hardening.
+- Milestone 7: website presence checks.
 
 Architecture decision:
 

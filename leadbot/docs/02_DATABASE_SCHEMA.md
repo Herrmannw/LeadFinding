@@ -43,7 +43,7 @@ Represents one user search request.
 
 Example:
 
-> Find HVAC businesses in Houston TX from Yelp and Thumbtack, target 500 records.
+> Find HVAC businesses in Houston TX from Yelp and Thumbtack, with a best-effort goal of 500 records.
 
 Fields:
 
@@ -71,6 +71,8 @@ create table search_jobs (
   finished_at timestamptz
 );
 ```
+
+`target_record_count` is a best-effort goal for V1, not a guaranteed result count. The worker should stop once it reaches the goal, but SERP result availability, provider limits, selected sources, and duplicate filtering can produce fewer records.
 
 Possible statuses:
 
