@@ -18,16 +18,19 @@ def test_run_simulated_job_marks_completed(monkeypatch) -> None:
 
     monkeypatch.setattr(worker.queries, "mark_job_completed", mark_job_completed)
 
-    assert worker.run_simulated_job(object(), {"id": "job-1"}) is True
+    worker.run_simulated_job(object(), {"id": "job-1"})
     assert completed == [("job-1", 0, 0, 0)]
 
 
 def test_process_next_job_returns_false_when_queue_is_empty(monkeypatch) -> None:
     monkeypatch.setattr(worker.queries, "claim_next_queued_job", lambda connection: None)
 
+    def job_runner(connection, job):
+        raise AssertionError("job runner should not be called for an empty queue")
+
     processed = worker.process_next_job(
         fake_connection_factory,
-        lambda connection, job: True,
+        job_runner,
     )
 
     assert processed is False
@@ -43,7 +46,6 @@ def test_process_next_job_claims_and_runs_job(monkeypatch) -> None:
 
     def job_runner(connection, claimed_job):
         events.append(f"run:{claimed_job['id']}")
-        return True
 
     monkeypatch.setattr(worker.queries, "claim_next_queued_job", claim_next_queued_job)
 
@@ -70,3 +72,19 @@ def test_process_next_job_marks_failed_when_runner_raises(monkeypatch) -> None:
 
     assert processed is True
     assert failed == [("job-1", "boom")]
+
+
+def test_process_next_job_marks_failed_when_runner_returns_value(monkeypatch) -> None:
+    failed: list[tuple[str, str]] = []
+
+    monkeypatch.setattr(worker.queries, "claim_next_queued_job", lambda connection: {"id": "job-1"})
+
+    def mark_job_failed(connection, job_id, error_message):
+        failed.append((job_id, error_message))
+
+    monkeypatch.setattr(worker.queries, "mark_job_failed", mark_job_failed)
+
+    processed = worker.process_next_job(fake_connection_factory, lambda connection, job: False)
+
+    assert processed is True
+    assert failed == [("job-1", "Job runners must raise on failure and return None")]

@@ -127,6 +127,11 @@ Acceptance criteria:
 - API usage is logged.
 - Duplicate URLs are removed.
 
+Current status:
+- Implemented as `leadbot-worker --once --mode collect-urls`.
+- Discovered source URLs are stored in `raw_source_records` with `parse_status = 'needs_review'`.
+- Parser, dedupe, website-status, and scoring work remains Milestone 5+ even though scaffold code exists.
+
 ---
 
 # Milestone 5: Source Parsers
@@ -147,6 +152,11 @@ Acceptance criteria:
 - Thumbtack page produces raw record.
 - Missing fields are allowed.
 - Parser failures are stored as failed/partial records.
+
+Current status:
+- Implemented as `leadbot-worker --once --mode parse-pages`.
+- Parser tests cover fixture-based Yelp and Thumbtack extraction, partial records, and unknown-parser failure.
+- The parser code does not require real SERP results; live pages should be used later for smoke testing and fixture expansion.
 
 ---
 

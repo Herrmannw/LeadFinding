@@ -9,10 +9,10 @@ from psycopg import Connection
 from leadbot_worker.db import queries
 
 ConnectionFactory = Callable[[], AbstractContextManager[Connection]]
-JobRunner = Callable[[Connection, dict[str, Any]], bool]
+JobRunner = Callable[[Connection, dict[str, Any]], None]
 
 
-def run_simulated_job(connection: Connection, job: dict[str, Any]) -> bool:
+def run_simulated_job(connection: Connection, job: dict[str, Any]) -> None:
     queries.mark_job_completed(
         connection,
         job["id"],
@@ -20,7 +20,6 @@ def run_simulated_job(connection: Connection, job: dict[str, Any]) -> bool:
         leads_created=0,
         qualified_leads=0,
     )
-    return True
 
 
 def process_next_job(connection_factory: ConnectionFactory, job_runner: JobRunner) -> bool:
@@ -32,7 +31,9 @@ def process_next_job(connection_factory: ConnectionFactory, job_runner: JobRunne
 
     with connection_factory() as connection:
         try:
-            job_runner(connection, job)
+            result = job_runner(connection, job)
+            if result is not None:
+                raise RuntimeError("Job runners must raise on failure and return None")
         except Exception as exc:  # noqa: BLE001 - workers should persist job failures.
             queries.mark_job_failed(connection, job["id"], str(exc))
 

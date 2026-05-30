@@ -32,7 +32,23 @@ It claims one queued job, marks it `running`, simulates processing, and marks it
 Later pipeline work can be exercised explicitly:
 
 ```bash
+leadbot-worker --once --mode collect-urls
+```
+
+This is the Milestone 4 mode. It collects source URLs, logs SERP API requests, stores discovered URLs as `raw_source_records` with `parse_status = 'needs_review'`, and marks the job completed without running parser/dedupe/scoring stages.
+
+Milestone 5 parser work can be exercised explicitly:
+
+```bash
+leadbot-worker --once --mode parse-pages
+```
+
+This collects source URLs, fetches the source pages, stores parsed Yelp/Thumbtack records in `raw_source_records`, and marks the job completed without running dedupe/scoring stages.
+
+The later in-progress pipeline can be exercised explicitly:
+
+```bash
 leadbot-worker --once --mode pipeline
 ```
 
-Pipeline mode uses source config, URL collection, parser contracts, normalization, dedupe, website status classification, and scoring. Treat that path as Milestone 4+ work.
+Pipeline mode uses source config, URL collection, parser contracts, normalization, dedupe, website status classification, and scoring. Treat that path as Milestone 6+ work.

@@ -2,11 +2,19 @@ from __future__ import annotations
 
 from leadbot_worker.models.raw_record import ParsedSourceRecord
 from leadbot_worker.parsers.common import (
+    address_fields,
+    city_state_from_text,
+    clean_text,
     find_phone,
     first_json_ld_value,
+    first_official_website_url,
+    first_string_value,
     first_text,
     json_ld_objects,
     meta_content,
+    parse_confidence,
+    rating_value,
+    review_count,
     soup_for,
 )
 
@@ -17,20 +25,53 @@ def parse_yelp_page(html: str, source_url: str, query_used: str | None = None) -
     try:
         soup = soup_for(html)
         json_ld = json_ld_objects(soup)
-        name = first_json_ld_value(json_ld, ["name"]) or first_text(soup, ["h1"])
-        description = meta_content(soup, ['meta[name="description"]', 'meta[property="og:description"]'])
+        name = first_string_value(
+            first_json_ld_value(json_ld, ["name"]),
+            first_text(soup, ["h1"]),
+            meta_content(soup, ['meta[property="og:title"]']),
+        )
+        description = clean_text(
+            meta_content(soup, ['meta[name="description"]', 'meta[property="og:description"]'])
+        )
         page_text = soup.get_text(" ", strip=True)
-        phone = first_json_ld_value(json_ld, ["telephone"]) or find_phone(page_text)
-        rating_value = _rating_value(first_json_ld_value(json_ld, ["aggregateRating"]))
-        review_count = _review_count(first_json_ld_value(json_ld, ["aggregateRating"]))
+        phone = first_string_value(
+            first_json_ld_value(json_ld, ["telephone"]),
+            first_text(soup, ['a[href^="tel:"]']),
+            find_phone(page_text),
+        )
+        website_url = first_official_website_url(
+            soup,
+            base_url=source_url,
+            source_domains={"yelp.com"},
+        )
+        rating = rating_value(first_json_ld_value(json_ld, ["aggregateRating"]))
+        reviews = review_count(first_json_ld_value(json_ld, ["aggregateRating"]))
+        address, city, state = address_fields(first_json_ld_value(json_ld, ["address"]))
+        if not address:
+            address = first_text(soup, ["address", '[data-testid="address"]'])
+            city, state = city_state_from_text(address)
+        category = first_string_value(
+            first_json_ld_value(json_ld, ["category", "additionalType", "servesCuisine"]),
+            first_text(
+                soup,
+                [
+                    '[data-testid="biz-categories"] a',
+                    ".category-str-list a",
+                    'a[href*="cflt="]',
+                ],
+            ),
+        )
 
-        confidence = 0.45
-        if name:
-            confidence += 0.25
-        if phone:
-            confidence += 0.15
-        if rating_value or review_count:
-            confidence += 0.1
+        confidence = parse_confidence(
+            base=0.25,
+            name=name,
+            phone=phone,
+            address=address,
+            rating=rating,
+            review_count_value=reviews,
+            description=description,
+            website_url=website_url,
+        )
 
         return ParsedSourceRecord(
             source_name="yelp",
@@ -38,13 +79,20 @@ def parse_yelp_page(html: str, source_url: str, query_used: str | None = None) -
             query_used=query_used,
             business_name=name,
             phone=phone,
-            category=first_json_ld_value(json_ld, ["servesCuisine"]) or None,
-            rating=rating_value,
-            review_count=review_count,
+            website_url=website_url,
+            address=address,
+            city=city,
+            state=state,
+            category=category,
+            rating=rating,
+            review_count=reviews,
             profile_text=description,
-            raw_payload={"json_ld_count": len(json_ld)},
+            raw_payload={
+                "json_ld_count": len(json_ld),
+                "website_link_found": website_url is not None,
+            },
             parse_status="parsed" if name else "partial",
-            parse_confidence=min(confidence, 1.0),
+            parse_confidence=confidence,
             parser_version=PARSER_VERSION,
         )
     except Exception as exc:  # noqa: BLE001 - parser failures must be stored, not crash jobs.
@@ -57,17 +105,3 @@ def parse_yelp_page(html: str, source_url: str, query_used: str | None = None) -
             parser_version=PARSER_VERSION,
             error_message=str(exc),
         )
-
-
-def _rating_value(value: object) -> float | None:
-    if isinstance(value, dict) and value.get("ratingValue") is not None:
-        return float(value["ratingValue"])
-    return None
-
-
-def _review_count(value: object) -> int | None:
-    if isinstance(value, dict):
-        count = value.get("reviewCount") or value.get("ratingCount")
-        if count is not None:
-            return int(count)
-    return None

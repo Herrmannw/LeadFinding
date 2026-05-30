@@ -5,7 +5,11 @@ import time
 
 from leadbot_worker.db.connection import connect
 from leadbot_worker.pipeline.collect_urls import provider_from_env
-from leadbot_worker.pipeline.run_job import run_search_job
+from leadbot_worker.pipeline.run_job import (
+    run_parse_pages_job,
+    run_search_job,
+    run_url_collection_job,
+)
 from leadbot_worker.worker import process_next_job, run_simulated_job
 
 
@@ -15,9 +19,12 @@ def main() -> None:
     parser.add_argument("--poll-seconds", type=int, default=10)
     parser.add_argument(
         "--mode",
-        choices=["simulate", "pipeline"],
+        choices=["simulate", "collect-urls", "parse-pages", "pipeline"],
         default="simulate",
-        help="Use simulate for Milestone 3 queue lifecycle checks; pipeline runs later stages.",
+        help=(
+            "Use simulate for Milestone 3, collect-urls for Milestone 4, "
+            "parse-pages for Milestone 5, or pipeline for later stages."
+        ),
     )
     args = parser.parse_args()
 
@@ -26,6 +33,18 @@ def main() -> None:
 
         def job_runner(connection, job):
             return run_search_job(connection, job, provider)
+
+    elif args.mode == "collect-urls":
+        provider = provider_from_env()
+
+        def job_runner(connection, job):
+            return run_url_collection_job(connection, job, provider)
+
+    elif args.mode == "parse-pages":
+        provider = provider_from_env()
+
+        def job_runner(connection, job):
+            return run_parse_pages_job(connection, job, provider)
 
     else:
         job_runner = run_simulated_job

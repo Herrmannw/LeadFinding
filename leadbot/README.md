@@ -7,12 +7,14 @@ Current implementation status:
 - Supabase/Postgres migration for the V1 tables.
 - Milestone 2 frontend for creating `search_jobs` and viewing job status/ranked leads.
 - Milestone 3 Python worker skeleton for queue polling and simulated job lifecycle.
-- Later worker pipeline code exists as scaffold/in-progress, but Milestone 4+ should not be treated as complete yet.
+- Milestone 4 worker mode for collecting, filtering, deduping, logging, and storing source URLs.
+- Milestone 5 parser mode for fetching source pages and storing parsed raw records.
+- Later normalization/dedupe/scoring code exists as scaffold/in-progress, but Milestone 6+ should not be treated as complete yet.
 - Unit tests exist for worker utilities, but later pipeline behavior still needs milestone-by-milestone hardening.
 
 Next milestone:
 
-- Milestone 4: SERP URL collection as the first real pipeline stage.
+- Milestone 6: normalization and dedupe hardening.
 
 Architecture decision:
 
