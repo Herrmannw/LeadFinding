@@ -57,7 +57,7 @@ leadbot/
       main.py
   supabase/
     migrations/
-      001_initial_schema.sql
+      <timestamp>_initial_schema.sql
   docs/
     00_PROJECT_OVERVIEW.md
     01_SYSTEM_ARCHITECTURE.md
