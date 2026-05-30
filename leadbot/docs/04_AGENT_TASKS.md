@@ -14,6 +14,9 @@ Use this file to guide coding agents through the build.
 - Write simple, readable code.
 - Prefer boring architecture over clever abstractions.
 - Do not introduce Prisma/tRPC unless the project direction changes to full TypeScript.
+- Do not introduce browser-side Supabase table access in V1.
+- Keep `DATABASE_URL` server-only.
+- Keep RLS enabled and deny `anon`/`authenticated` table access unless an explicit auth architecture change adds ownership columns and policies.
 - Python worker is responsible for scraping, parsing, dedupe, and scoring.
 - Next.js frontend is responsible for creating jobs and displaying results.
 
@@ -71,6 +74,11 @@ Acceptance criteria:
 - User can create a search job from the browser.
 - Job appears in database.
 - Job status is visible.
+
+Current status:
+- Implemented.
+- Uses Next.js server actions and server-only direct Postgres access.
+- Job progress is displayed on page load/manual refresh; realtime or polling refresh is not part of Milestone 2.
 
 ---
 

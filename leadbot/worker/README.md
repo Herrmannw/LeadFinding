@@ -6,6 +6,8 @@ Python worker for the V1 pipeline described in `../docs`.
 
 Set `DATABASE_URL` to a Supabase/Postgres connection string.
 
+The worker uses direct server-side Postgres access. It does not rely on Supabase Data API policies.
+
 Optional:
 
 - `LEADBOT_SERP_PROVIDER=mock` uses deterministic mock URLs.

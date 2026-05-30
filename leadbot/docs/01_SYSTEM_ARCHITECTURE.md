@@ -6,10 +6,12 @@ Frontend:
 - Next.js
 - React
 - shadcn/ui or simple table components
-- Supabase JS client
+- Server actions/pages with server-only Postgres access
 
 Database:
 - Supabase Postgres
+- Row Level Security enabled on public tables
+- No browser/Data API access in V1
 
 Worker/Scraper:
 - Python
@@ -24,6 +26,32 @@ Queue:
 - V1: simple polling worker or cron-style worker
 - Later: Redis + RQ
 - Much later: Celery if needed
+
+## Architecture Decision: Database Access
+
+V1 uses Supabase as hosted Postgres, not as a browser-facing data API.
+
+The Next.js frontend reads and writes database rows only from server-side code using `DATABASE_URL`. The Python worker also connects directly to Postgres with `DATABASE_URL`. Do not add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, or browser-side Supabase table access for V1.
+
+Why:
+- The app is an internal tool with no V1 multi-user/team ownership model.
+- Server actions are already the application boundary for validation and mutations.
+- The worker needs direct database access for queue claiming, progress updates, and pipeline writes.
+- Avoiding browser table access keeps the RLS model simple until real auth requirements exist.
+
+If a later milestone needs Supabase Auth, Realtime, mobile clients, or direct browser reads/writes, make that an explicit architecture change first. That change must add an ownership model such as `owner_user_id` or `account_id`, write matching RLS policies, and migrate frontend data access intentionally.
+
+## RLS and Policy Model
+
+All V1 tables live in the `public` schema, so RLS stays enabled as defense in depth for Supabase's exposed schema defaults.
+
+Current V1 policy:
+- No `anon` policies.
+- No `authenticated` policies.
+- No browser/client table access.
+- Server-side Next.js and the Python worker use private `DATABASE_URL` connections.
+
+This means the Supabase Data API should not be able to read or mutate these tables with `anon` or `authenticated` JWTs. That is intentional. Do not add broad policies like `using (true)` unless the app has deliberately switched to a Supabase Auth/Data API access model.
 
 ## High-Level Data Flow
 
@@ -80,8 +108,8 @@ Responsibilities:
 - Create search job
 - Show job progress
 - Show lead table
-- Allow filtering/sorting
-- Maybe allow CSV export
+- Later: allow filtering/sorting
+- Later: maybe allow CSV export
 
 ### Python Worker
 

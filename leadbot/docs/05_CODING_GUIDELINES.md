@@ -11,6 +11,19 @@
 - Every external API call should be logged.
 - Every score should include reasons.
 
+## Database Access and RLS
+
+V1 uses Supabase as hosted Postgres with server-side access only.
+
+Rules:
+- Use `DATABASE_URL` only in server-side Next.js code and the Python worker.
+- Do not expose `DATABASE_URL` with `NEXT_PUBLIC_`.
+- Do not add browser-side Supabase table reads/writes in V1.
+- Do not add broad `anon` or `authenticated` RLS policies.
+- Keep RLS enabled on public tables so accidental Supabase Data API access is denied by default.
+
+If direct browser access becomes a product requirement, pause and update the architecture first. That change needs Supabase Auth, ownership columns, indexes for policy predicates, and specific RLS policies before any client code is added.
+
 ## Project Structure Recommendation
 
 ```text

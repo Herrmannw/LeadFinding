@@ -22,6 +22,19 @@ web_presence_checks
 
 For V1, source configs can be hardcoded in code.
 
+## Access Model
+
+V1 uses Supabase Postgres through private server-side connections:
+
+- Next.js server actions/pages use `DATABASE_URL`.
+- The Python worker uses `DATABASE_URL`.
+- Browser code does not use the Supabase JS client to access tables.
+- The Supabase Data API is not part of the V1 application boundary.
+
+Because these tables are in Supabase's default exposed `public` schema, every table should keep RLS enabled. The current V1 policy posture is deny-by-default for `anon` and `authenticated`: there are no table policies for those roles. This is intentional until the product has a real user/account ownership model.
+
+Do not add broad `authenticated can manage everything` policies. If a future milestone introduces Supabase Auth or browser-side table access, first add ownership columns, define per-table policies, and update the frontend architecture intentionally.
+
 ---
 
 # 1. `search_jobs`
