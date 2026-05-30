@@ -21,4 +21,18 @@ pip install -e ".[dev]"
 leadbot-worker --once
 ```
 
-The first implementation includes the queue loop, source config, URL collection, parser contracts, normalization, dedupe, website status classification, and scoring. Real page fetching and parser selectors are intentionally conservative and can be strengthened source-by-source.
+The default mode is the Milestone 3 skeleton:
+
+```bash
+leadbot-worker --once --mode simulate
+```
+
+It claims one queued job, marks it `running`, simulates processing, and marks it `completed`.
+
+Later pipeline work can be exercised explicitly:
+
+```bash
+leadbot-worker --once --mode pipeline
+```
+
+Pipeline mode uses source config, URL collection, parser contracts, normalization, dedupe, website status classification, and scoring. Treat that path as Milestone 4+ work.

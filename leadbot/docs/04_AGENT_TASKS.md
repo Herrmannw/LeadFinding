@@ -100,6 +100,12 @@ Acceptance criteria:
 - Status changes from queued → running → completed.
 - Errors are stored in `error_message`.
 
+Current status:
+- Implemented.
+- Default worker mode is `simulate`, which claims one queued job and marks it completed without running scraper/parser stages.
+- Use `--mode pipeline` only when working on later milestones.
+- Unit tests cover empty queues, successful job execution, and failed runner error persistence.
+
 ---
 
 # Milestone 4: SERP URL Collection

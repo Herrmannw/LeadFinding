@@ -54,6 +54,7 @@ leadbot/
         raw_record.py
         lead.py
         score.py
+      worker.py
       main.py
   supabase/
     migrations/
