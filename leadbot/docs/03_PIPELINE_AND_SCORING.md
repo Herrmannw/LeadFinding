@@ -181,6 +181,14 @@ Signals:
 - Search returns only Yelp/Thumbtack/social profiles → possible `no_website_found`
 - Found domain is parked/dead → `broken_website` or `parked_domain`
 
+Current V1 implementation is intentionally conservative and only uses parsed source records:
+- trusted parsed source record has `website_url` → `website_found`
+- all usable parsed source records have no `website_url` → `no_website_found`
+- no usable parsed source records → `unknown`
+- mixed usable and failed/low-confidence/review-only source records → `unclear`
+
+Do not add source-page-shape guesses or external website-search checks until representative saved Yelp/Thumbtack pages and fixtures exist. Broken/parked-domain detection is also deferred.
+
 Suggested search checks:
 
 ```text

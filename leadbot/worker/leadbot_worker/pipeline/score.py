@@ -48,11 +48,14 @@ def score_lead(lead: LeadCandidate) -> LeadScore:
         no_website_score -= 50
         reasons.append("Official website found")
     elif lead.website_status in {"broken_website", "parked_domain"}:
-        no_website_score += 60
+        no_website_score += 75
         reasons.append("Website appears broken or parked")
     elif lead.website_status == "unknown":
         no_website_score += 20
         reasons.append("Website status is still unknown")
+    elif lead.website_status == "unclear":
+        no_website_score += 10
+        reasons.append("Website status needs review")
 
     if len(source_names) >= 1 and not lead.website_url:
         no_website_score += 10

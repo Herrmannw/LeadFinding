@@ -85,7 +85,7 @@ def run_search_job(connection: Connection, job: dict[str, Any], provider: SerpPr
 
     for lead_index, lead in enumerate(leads, start=1):
         score = score_lead(lead)
-        if score.recommended_bucket == "high_priority":
+        if queries.lead_status_for(score, lead.status) == "qualified":
             qualified_count += 1
         raw_ids = [
             raw_record_ids_by_url[record.source_url]

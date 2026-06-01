@@ -10,13 +10,14 @@ Current implementation status:
 - Milestone 4 worker mode for collecting, filtering, deduping, logging, and storing source URLs.
 - Milestone 5 parser mode for fetching source pages and storing parsed raw records.
 - Milestone 6 normalization/dedupe hardening for canonical leads and preserved source evidence.
-- Later website-presence and scoring behavior exists as scaffold/in-progress, but Milestone 7+ should not be treated as complete yet.
+- Milestone 7 conservative website presence classification from parsed source records.
+- Milestone 8 scoring hardening for alive/no-website/opportunity scores, score reasons, score history, and latest-score copies on leads.
 - Unit tests exist for worker utilities, but later pipeline behavior still needs milestone-by-milestone hardening.
 - Known Milestone 10 reliability bug: a worker crash after claiming a job can leave that job stuck in `running` until stale-job recovery is added.
 
 Next milestone:
 
-- Milestone 7: website presence checks.
+- Milestone 9: dashboard filtering, score reasons, and export polish.
 
 Architecture decision:
 

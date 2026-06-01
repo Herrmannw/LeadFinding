@@ -218,6 +218,14 @@ Acceptance criteria:
 - Leads get a website status.
 - No-website leads are distinguishable from unknown/unclear leads.
 
+Current status:
+- Implemented as a simple conservative classifier over parsed source records.
+- No source-page-shape guessing was added.
+- No external website search, broken-domain check, or parked-domain check is implemented yet.
+- `website_found` requires a synthesized or usable parsed `website_url`.
+- `no_website_found` requires all source records to be usable parsed evidence with no `website_url`.
+- failed, low-confidence, or review-only source records produce `unknown` or `unclear` instead of a confident no-website signal.
+
 ---
 
 # Milestone 8: Scoring
@@ -237,6 +245,14 @@ Acceptance criteria:
 - Each lead receives scores.
 - Each score includes human-readable reasons.
 - High-priority leads can be sorted in frontend.
+
+Current status:
+- Implemented.
+- Pipeline mode scores canonical leads after dedupe.
+- Scores include alive/no-website/opportunity values, score version, recommended bucket, and reasons.
+- `lead_scores` stores score history, while the latest score fields are copied onto `leads` for sorting.
+- Job `qualified_leads` counts leads that are actually persisted as `qualified`; high-scoring
+  `needs_review` leads keep their review status and are not counted as qualified yet.
 
 ---
 

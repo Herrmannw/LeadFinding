@@ -178,9 +178,40 @@ def collect_source_url_details(
             discovered.append(
                 SourceUrl(source_name=source_config.name, url=normalized_url, query_used=query)
             )
-            if len(discovered) >= target_record_count:
-                return SourceUrlCollection(urls=discovered, request_logs=request_logs)
-    return SourceUrlCollection(urls=discovered, request_logs=request_logs)
+    return SourceUrlCollection(
+        urls=balance_source_urls(discovered, target_record_count),
+        request_logs=request_logs,
+    )
+
+
+def balance_source_urls(urls: list[SourceUrl], limit: int) -> list[SourceUrl]:
+    if len(urls) <= limit:
+        return urls
+
+    source_order: list[str] = []
+    urls_by_source: dict[str, list[SourceUrl]] = {}
+    for source_url in urls:
+        if source_url.source_name not in urls_by_source:
+            source_order.append(source_url.source_name)
+            urls_by_source[source_url.source_name] = []
+        urls_by_source[source_url.source_name].append(source_url)
+
+    balanced: list[SourceUrl] = []
+    offset = 0
+    while len(balanced) < limit:
+        added = False
+        for source_name in source_order:
+            source_urls = urls_by_source[source_name]
+            if offset >= len(source_urls):
+                continue
+            balanced.append(source_urls[offset])
+            added = True
+            if len(balanced) >= limit:
+                break
+        if not added:
+            break
+        offset += 1
+    return balanced
 
 
 def normalize_source_url(url: str) -> str:

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 
 const ALLOWED_SOURCES = new Set(["yelp", "thumbtack"]);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type JobStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
 
@@ -94,6 +95,10 @@ export async function getRecentJobs(limit = 8) {
 }
 
 export async function getJob(jobId: string) {
+  if (!isUuid(jobId)) {
+    return null;
+  }
+
   const [job] = await db()<SearchJob[]>`
     select
       id,
@@ -119,6 +124,10 @@ export async function getJob(jobId: string) {
 }
 
 export async function getLeadsForJob(jobId: string) {
+  if (!isUuid(jobId)) {
+    return [];
+  }
+
   return db()<LeadRow[]>`
     select
       id,
@@ -140,4 +149,8 @@ export async function getLeadsForJob(jobId: string) {
     order by opportunity_score desc nulls last, created_at desc
     limit 100
   `;
+}
+
+function isUuid(value: string) {
+  return UUID_RE.test(value);
 }

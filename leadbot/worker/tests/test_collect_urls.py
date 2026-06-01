@@ -20,6 +20,20 @@ def test_collect_source_urls_filters_selected_domains() -> None:
     assert len({str(url.url) for url in urls}) == len(urls)
 
 
+def test_collect_source_urls_queries_each_selected_source_before_trimming() -> None:
+    collection = collect_source_url_details(
+        industry="HVAC",
+        location="Houston TX",
+        selected_sources=["yelp", "thumbtack"],
+        target_record_count=2,
+        provider=MockSerpProvider(),
+    )
+
+    assert [log.source_name for log in collection.request_logs] == ["yelp", "thumbtack"]
+    assert len(collection.urls) == 2
+    assert {url.source_name for url in collection.urls} == {"yelp", "thumbtack"}
+
+
 def test_collect_source_urls_defaults_empty_selection_to_all_sources() -> None:
     urls = collect_source_urls(
         industry="HVAC",

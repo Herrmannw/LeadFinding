@@ -142,6 +142,10 @@ Notes:
 - Do not store full raw HTML by default.
 - Store source URL, extracted fields, parser version, confidence, and a small profile text excerpt.
 - Use `raw_payload` for source-specific weird fields.
+- Future website-checking milestones may need to preserve both the exact extracted website URL
+  and the normalized domain used for dedupe/scoring. In that case, keep
+  `raw_source_records.website_url` as source evidence, add a canonical/display URL if needed,
+  and store a separate normalized domain such as `leads.website_domain`.
 
 ---
 
